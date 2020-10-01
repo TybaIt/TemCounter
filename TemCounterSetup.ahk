@@ -236,8 +236,8 @@ loop
         
         WinGetPos, X, Y, Width, Height, A
         
-        leftFrame := new Rectangle(0.6 * X, 0.02 * Y, 0.13 * Width, 0.04 * Height)
-        rightFrame := new Rectangle(0.81 * X, 0.07 * Y, 0.13 * Width, 0.04 * Height) 
+        leftFrame := new Rectangle(X + 0.6 * X, Y + 0.02 * Y, X + 0.13 * Width, Y +  0.04 * Height)
+        rightFrame := new Rectangle(X + 0.81 * X, Y + 0.07 * Y, X + 0.13 * Width, Y + 0.04 * Height) 
         
         if (!right_luma && ImageInRectangle(luma_icon, rightFrame)) { ; is right encounter a luma?
             right_luma := true
