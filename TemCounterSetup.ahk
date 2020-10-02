@@ -68,9 +68,9 @@ if (A_IsCompiled) {
     ; #### Installation ####
     if (InstallDir != A_WorkingDir) {
 
-        ; Select new install directory if there is no previous installation.
+        ; Select new install directory if there is no previous installation (CLSID -> Program Files).
         if (!FileExist(InstallDir . "\" . InstallName . ".exe")) {
-            FileSelectFolder, SelectedPath,::{20d04fe0-3aea-1069-a2d8-08002b30309d},0, Select the folder inwich the root directory of %InstallName% should be placed.
+            FileSelectFolder, SelectedPath,::{7be9d83c-a729-4d97-b5a7-1b7313c39e0a},0, Select the folder inwich the root directory of %InstallName% should be placed.
             if (!ErrorLevel) {
                 InstallDir = %SelectedPath%\%InstallName%
             } else {
@@ -106,13 +106,13 @@ if (A_IsCompiled) {
         RegWrite, Reg_SZ, %UninstallRegKey%, Contact, https://www.playtemtem.com/forums/members/tybalt.3133/
         FileCreateShortcut, %InstallDir%\%InstallName%.exe, %A_Desktop%\%InstallName%.lnk, %InstallDir%      
     
-        ; Build temporary install batch which self destructs when finished.
+        ; Build temporary install batch which self destructs when finished (outcommented autostart).
         FileAppend,
         (
             @echo off
             ping localhost -n 1 -w 500>nul
             move "%A_ScriptDir%\%A_ScriptName%" "%InstallDir%\%InstallName%.exe"
-            start "" "%InstallDir%\%InstallName%.exe"
+            :: start "" "%InstallDir%\%InstallName%.exe"
             `(goto`) 2>nul & del "`%~f0"
         ), %InstallDir%\temp_install_%InstallName%.bat
         FileSetAttrib +T, %InstallDir%\temp_install_%InstallName%.bat
@@ -131,7 +131,7 @@ if (A_IsCompiled) {
         ), %InstallDir%\Uninstall_%InstallName%.bat
         FileSetAttrib +HT, %InstallDir%\Uninstall_%InstallName%.bat
         
-        ; Run install batch and close this instance. The batch will run a new instance from the install directory.
+        ; Run install batch and close this instance. The batch may run a new instance from the install directory.
         Run, %InstallDir%\temp_install_%InstallName%.bat, %InstallDir%
         exit
     }
@@ -213,51 +213,55 @@ class Point {
     }
 }
 
-
-right_luma := false
-left_luma := false
-encounter := false
-loop
+DoUpdate()
+DoUpdate() 
 {
-    Process, Exist, Temtem.exe
-    if (WinActive("Temtem")) continue
+    right_luma := false
+    left_luma := false
+    encounter := false
     
-    if (!encounter && InBattle()) { ; only check for in-battle if we are out-of-battle.
-    
-        if (LeftEncounter()) {
-            encounter := true
-            WriteOutput("encounter_session", encounter_prefix_session, encounter_suffix_session, 2)
-            WriteOutput("encounter_total", encounter_prefix_total, encounter_suffix_total, 2)
-        } else {
-            encounter := true
-            WriteOutput("encounter_session", encounter_prefix_session, encounter_suffix_session, 1)
-            WriteOutput("encounter_total", encounter_prefix_total, encounter_suffix_total, 1)
+    loop
+    {
+        Process, Exist, Temtem.exe
+        if (!WinActive("Temtem"))
+            continue
+
+        if (!encounter && InBattle()) {
+
+            if (LeftEncounter()) {
+                encounter := true
+                WriteOutput("encounter_session", encounter_prefix_session, encounter_suffix_session, 2)
+                WriteOutput("encounter_total", encounter_prefix_total, encounter_suffix_total, 2)
+            } else {
+                encounter := true
+                WriteOutput("encounter_session", encounter_prefix_session, encounter_suffix_session, 1)
+                WriteOutput("encounter_total", encounter_prefix_total, encounter_suffix_total, 1)
+            }
+            
+            WinGetPos, X, Y, Width, Height, A
+            
+            leftFrame := new Rectangle(X + 0.6 * X, Y + 0.02 * Y, X + 0.13 * Width, Y +  0.04 * Height)
+            rightFrame := new Rectangle(X + 0.81 * X, Y + 0.07 * Y, X + 0.13 * Width, Y + 0.04 * Height) 
+            
+            if (!right_luma && ImageInRectangle(luma_icon, rightFrame)) { ; is right encounter a luma?
+                right_luma := true
+                WriteOutput("luma_encounter", luma_prefix, luma_suffix, 1)
+            }
+      
+            if (!left_luma && ImageInRectangle(luma_icon, leftFrame)) { ; is left encounter a luma?
+                left_luma := true
+                WriteOutput("luma_encounter", luma_prefix, luma_suffix, 1)
+            }
         }
         
-        WinGetPos, X, Y, Width, Height, A
+        if (encounter && OutOfBattle()) {
         
-        leftFrame := new Rectangle(X + 0.6 * X, Y + 0.02 * Y, X + 0.13 * Width, Y +  0.04 * Height)
-        rightFrame := new Rectangle(X + 0.81 * X, Y + 0.07 * Y, X + 0.13 * Width, Y + 0.04 * Height) 
-        
-        if (!right_luma && ImageInRectangle(luma_icon, rightFrame)) { ; is right encounter a luma?
-            right_luma := true
-            WriteOutput("luma_encounter", luma_prefix, luma_suffix, 1)
+            encounter := false
+            right_luma := false
+            left_luma := false
         }
-  
-        if (!left_luma && ImageInRectangle(luma_icon, leftFrame)) { ; is left encounter a luma?
-            left_luma := true
-            WriteOutput("luma_encounter", luma_prefix, luma_suffix, 1)
-        }
-        
-    } else if (encounter && OutOfBattle()) { ; only check for out-of-battle if we are in-battle.
-    
-        encounter := false
-        left_luma := false
-        right_luma := false
-        
     }
 }
-
 
 WriteOutput(ByRef fileName, ByRef prefix, ByRef suffix, ByRef incr)
 {
@@ -286,7 +290,7 @@ ToRGB(color) {
 }
 
 
-Compare(c1, c2, vary=500) {
+Equals(c1, c2, vary=500) {
     r1 := c1.r
     g1 := c1.g
     b1 := c1.b
@@ -294,8 +298,8 @@ Compare(c1, c2, vary=500) {
     r2 := c2.r
     g2 := c2.g
     b2 := c2.b
-    distance := ((r1 - r2) ** 2) + ((g1 - g2) ** 2) + ((b1 - b2) ** 2)
-    return distance <= vary
+ 
+    return ((r1 - r2) ** 2) + ((g1 - g2) ** 2) + ((b1 - b2) ** 2) <= vary
 }
 
 
@@ -318,23 +322,23 @@ InBattle()
     
     PixelGetColor, pixelColor1, spot1.X, spot1.Y, RGB
     pixelColor1 := ToRGB(pixelColor1)
-    
-    if (!Compare(pixelColor1, ToRGB(0xFFA732))) return false
+
+    if (!Equals(pixelColor1, ToRGB(0xFFA732))) return false
     
     PixelGetColor, pixelColor2, spot2.X, spot2.Y, RGB
     pixelColor2 := ToRGB(pixelColor2)
     
-    if (!Compare(pixelColor2, ToRGB(0x1BD1D4))) return false
+    if (!Equals(pixelColor2, ToRGB(0x1BD1D4))) return false
     
     PixelGetColor, pixelColor3, spot3.X, spot3.Y, RGB
     pixelColor3 := ToRGB(pixelColor3)
     
-    if (!Compare(pixelColor3, ToRGB(0xFFA732))) return false
+    if (!Equals(pixelColor3, ToRGB(0xFFA732))) return false
     
     PixelGetColor, pixelColor4, spot4.X, spot4.Y, RGB
     pixelColor4 := ToRGB(pixelColor4)
     
-    if (!Compare(pixelColor4, ToRGB(0x1BD1D4))) return false
+    if (!Equals(pixelColor4, ToRGB(0x1BD1D4))) return false
     
     return true
 }
@@ -351,22 +355,22 @@ OutOfBattle()
     PixelGetColor, pixelColor1, spot1.X, spot1.Y, RGB
     pixelColor1 := ToRGB(pixelColor1)
     
-    if (!Compare(pixelColor1, ToRGB(0x3CE8EA))) return false
+    if (!Equals(pixelColor1, ToRGB(0x3CE8EA))) return false
     
     PixelGetColor, pixelColor2, spot2.X, spot2.Y, RGB
     pixelColor2 := ToRGB(pixelColor2)
     
-    if (!Compare(pixelColor2, ToRGB(0x3CE8EA))) return false
+    if (!Equals(pixelColor2, ToRGB(0x3CE8EA))) return false
     
     PixelGetColor, pixelColor3, spot3.X, spot3.Y, RGB
     pixelColor3 := ToRGB(pixelColor3)
     
-    if (!Compare(pixelColor3, ToRGB(0x3CE8EA))) return false
+    if (!Equals(pixelColor3, ToRGB(0x3CE8EA))) return false
     
     PixelGetColor, pixelColor4, spot4.X, spot4.Y, RGB
     pixelColor4 := ToRGB(pixelColor4)
     
-    if (!Compare(pixelColor4, ToRGB(0x3CE8EA))) return false
+    if (!Equals(pixelColor4, ToRGB(0x3CE8EA))) return false
     
     return true
 }
@@ -381,22 +385,22 @@ LeftEncounter()
     PixelGetColor, pixelColor1, spot1.X, spot1.Y, RGB
     pixelColor1 := ToRGB(pixelColor1)
     
-    if (!Compare(pixelColor1, ToRGB(0x1E1E1E))) return false
+    if (!Equals(pixelColor1, ToRGB(0x1E1E1E))) return false
     
     PixelGetColor, pixelColor2, spot2.X, spot2.Y, RGB
     pixelColor2 := ToRGB(pixelColor2)
     
-    if (!Compare(pixelColor2, ToRGB(0x1CD1D3))) return false
+    if (!Equals(pixelColor2, ToRGB(0x1CD1D3))) return false
     
     PixelGetColor, pixelColor3, spot3.X, spot3.Y, RGB
     pixelColor3 := ToRGB(pixelColor3)
     
-    if (!Compare(pixelColor3, ToRGB(0x86C249))) return false
+    if (!Equals(pixelColor3, ToRGB(0x86C249))) return false
     
     PixelGetColor, pixelColor4, spot4.X, spot4.Y, RGB
     pixelColor4 := ToRGB(pixelColor4)
     
-    if (!Compare(pixelColor4, ToRGB(0x1E1E1E))) return false
+    if (!Equals(pixelColor4, ToRGB(0x1E1E1E))) return false
     
     return true
 }
