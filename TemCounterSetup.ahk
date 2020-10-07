@@ -213,6 +213,7 @@ class Point {
     }
 }
 
+
 DoUpdate()
 DoUpdate() 
 {
@@ -304,9 +305,7 @@ Equals(c1, c2, vary=500) {
 ImageInRectangle(ByRef image, ByRef bounds)
 {
     ImageSearch, Px, Py, bounds.X, bounds.Y, bounds.W, bounds.H, *4 %image%
-    if (!ErrorLevel)
-        return true
-    return false
+    return ErrorLevel == 0
 }
 
 
