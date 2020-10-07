@@ -228,34 +228,32 @@ DoUpdate()
 
         if (!encounter && InBattle()) {
 
-            if (LeftEncounter()) {
-                encounter := true
-                WriteOutput("encounter_session", encounter_prefix_session, encounter_suffix_session, 2)
-                WriteOutput("encounter_total", encounter_prefix_total, encounter_suffix_total, 2)
-            } else {
-                encounter := true
-                WriteOutput("encounter_session", encounter_prefix_session, encounter_suffix_session, 1)
-                WriteOutput("encounter_total", encounter_prefix_total, encounter_suffix_total, 1)
-            }
-            
-            WinGetPos, X, Y, Width, Height, A
-            
-            leftFrame := new Rectangle(X + 0.6 * X, Y + 0.02 * Y, X + 0.13 * Width, Y +  0.04 * Height)
-            rightFrame := new Rectangle(X + 0.81 * X, Y + 0.07 * Y, X + 0.13 * Width, Y + 0.04 * Height) 
-            
-            if (!right_luma && ImageInRectangle(luma_icon, rightFrame)) { ; is right encounter a luma?
-                right_luma := true
-                WriteOutput("luma_encounter", luma_prefix, luma_suffix, 1)
-            }
-      
-            if (!left_luma && ImageInRectangle(luma_icon, leftFrame)) { ; is left encounter a luma?
-                left_luma := true
-                WriteOutput("luma_encounter", luma_prefix, luma_suffix, 1)
-            }
-        }
+                if (LeftEncounter()) {
+                    encounter := true
+                    WriteOutput("encounter_session", encounter_prefix_session, encounter_suffix_session, 2)
+                    WriteOutput("encounter_total", encounter_prefix_total, encounter_suffix_total, 2)
+                } else {
+                    encounter := true
+                    WriteOutput("encounter_session", encounter_prefix_session, encounter_suffix_session, 1)
+                    WriteOutput("encounter_total", encounter_prefix_total, encounter_suffix_total, 1)
+                }
+                
+                WinGetPos, X, Y, Width, Height, Temtem
+                
+                leftFrame := new Rectangle(X + 0.6 * X, Y + 0.02 * Y, X + 0.13 * Width, Y +  0.04 * Height)
+                rightFrame := new Rectangle(X + 0.81 * X, Y + 0.07 * Y, X + 0.13 * Width, Y + 0.04 * Height) 
+                
+                if (!right_luma && ImageInRectangle(luma_icon, rightFrame)) { ; is right encounter a luma?
+                    right_luma := true
+                    WriteOutput("luma_encounter", luma_prefix, luma_suffix, 1)
+                }
+          
+                if (!left_luma && ImageInRectangle(luma_icon, leftFrame)) { ; is left encounter a luma?
+                    left_luma := true
+                    WriteOutput("luma_encounter", luma_prefix, luma_suffix, 1)
+                }
         
-        if (encounter && OutOfBattle()) {
-        
+        } else if (encounter && OutOfBattle()) {
             encounter := false
             right_luma := false
             left_luma := false
@@ -314,28 +312,32 @@ ImageInRectangle(ByRef image, ByRef bounds)
 
 InBattle()
 {
-    WinGetPos, X, Y, Width, Height, A
+    WinGetPos, X, Y, Width, Height, Temtem
     spot1 := new Point(X + 0.42 * Width, Y + 0.837 * Height) ; 0xFFA732
     spot2 := new Point(X + 0.42 * Width, Y + 0.915 * Height) ; 0x1BD1D4
     spot3 := new Point(X + 0.45 * Width, Y + 0.837 * Height) ; 0xFFA732
     spot4 := new Point(X + 0.45 * Width, Y + 0.915 * Height) ; 0x1BD1D4
     
     PixelGetColor, pixelColor1, spot1.X, spot1.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor1 := ToRGB(pixelColor1)
 
     if (!Equals(pixelColor1, ToRGB(0xFFA732))) return false
     
     PixelGetColor, pixelColor2, spot2.X, spot2.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor2 := ToRGB(pixelColor2)
     
     if (!Equals(pixelColor2, ToRGB(0x1BD1D4))) return false
     
     PixelGetColor, pixelColor3, spot3.X, spot3.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor3 := ToRGB(pixelColor3)
     
     if (!Equals(pixelColor3, ToRGB(0xFFA732))) return false
     
     PixelGetColor, pixelColor4, spot4.X, spot4.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor4 := ToRGB(pixelColor4)
     
     if (!Equals(pixelColor4, ToRGB(0x1BD1D4))) return false
@@ -346,28 +348,32 @@ InBattle()
 
 OutOfBattle() 
 {
-    WinGetPos, X, Y, Width, Height, A
+    WinGetPos, X, Y, Width, Height, Temtem
     spot1 := new Point(X + 0.918 * Width, Y + 0.245 * Height) ; 0x3CE8EA
     spot2 := new Point(X + 0.977 * Width, Y + 0.143 * Height) ; 0x3CE8EA
     spot3 := new Point(X + 0.8974 * Width, Y + 0.0491 * Height) ; 0x3CE8EA
     spot4 := new Point(X + 0.8745 * Width, Y + 0.2083 * Height) ; 0x3CE8EA
     
     PixelGetColor, pixelColor1, spot1.X, spot1.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor1 := ToRGB(pixelColor1)
     
     if (!Equals(pixelColor1, ToRGB(0x3CE8EA))) return false
     
     PixelGetColor, pixelColor2, spot2.X, spot2.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor2 := ToRGB(pixelColor2)
     
     if (!Equals(pixelColor2, ToRGB(0x3CE8EA))) return false
     
     PixelGetColor, pixelColor3, spot3.X, spot3.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor3 := ToRGB(pixelColor3)
     
     if (!Equals(pixelColor3, ToRGB(0x3CE8EA))) return false
     
     PixelGetColor, pixelColor4, spot4.X, spot4.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor4 := ToRGB(pixelColor4)
     
     if (!Equals(pixelColor4, ToRGB(0x3CE8EA))) return false
@@ -376,28 +382,32 @@ OutOfBattle()
 }
 LeftEncounter() 
 {
-    WinGetPos, X, Y, Width, Height, A
+    WinGetPos, X, Y, Width, Height, Temtem
     spot1 := new Point(X + 0.60859375 * Width, Y + 0.0875 * Height) ; 0x1E1E1E
     spot2 := new Point(X + 0.6203125 * Width, Y + 0.0791666666666667 * Height) ; 0x1CD1D3
     spot3 := new Point(X + 0.6234375 * Width, Y + 0.0638888888888889 * Height) ; 0x86C249
     spot4 := new Point(X + 0.7265625 * Width, Y + 0.0527777777777778 * Height) ; 0x1E1E1E
     
     PixelGetColor, pixelColor1, spot1.X, spot1.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor1 := ToRGB(pixelColor1)
     
     if (!Equals(pixelColor1, ToRGB(0x1E1E1E))) return false
     
     PixelGetColor, pixelColor2, spot2.X, spot2.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor2 := ToRGB(pixelColor2)
     
     if (!Equals(pixelColor2, ToRGB(0x1CD1D3))) return false
     
     PixelGetColor, pixelColor3, spot3.X, spot3.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor3 := ToRGB(pixelColor3)
     
     if (!Equals(pixelColor3, ToRGB(0x86C249))) return false
     
     PixelGetColor, pixelColor4, spot4.X, spot4.Y, RGB
+    if (ErrorLevel > 0) return false
     pixelColor4 := ToRGB(pixelColor4)
     
     if (!Equals(pixelColor4, ToRGB(0x1E1E1E))) return false
